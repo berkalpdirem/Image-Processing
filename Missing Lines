@@ -1,0 +1,118 @@
+%My process have 3 step.First step is find the horizontal missing line
+%after that second step is rotete 90 degree the result of step 1 and find the orginal
+%image's vertical missing line.Lastly Third step is rotete 270 degree third step's
+%result and find the our output.
+
+
+%--------------------------------------------------------------------------------------------------------------------
+%---------------------------------------------------STEP1------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------------------
+
+
+% We open the image in 32 bit range. Becacuse of that; we want the short and fast process
+img = uint32(imread('qb_pyamids_missingLines.tif')); 
+ 
+% Definition of the band for process                                                                                                    
+img_b1 = img(:,:,1); 
+img_b2 = img(:,:,2);
+img_b3 = img(:,:,3);
+img_b4 = img(:,:,4);
+
+imgrow = size(img_b1,1); % Get the band's row information
+imgcolumn = size(img_b1,2);  %Get the band's column infrmation
+
+horizontal_missing_lines = []; % Creating an empty array for saving the number of missing lines
+
+K = 1;
+for i = 1:imgrow
+   if sum(img(i,:)) == 0    %   This loop is find missing line 
+       horizontal_missing_lines(K) = i;        
+       K = K + 1;
+   end
+end
+
+imgline = size(horizontal_missing_lines,2);
+
+for i = 1:imgline               % Here, the missing lines are averaged with above and below line by pixel-by-pixel.
+    for j = 1:imgcolumn
+    img_b1(horizontal_missing_lines(i),j)=(img_b1(horizontal_missing_lines(i)-1,j)+img_b1(horizontal_missing_lines(i)+1,j))/2;
+    img_b2(horizontal_missing_lines(i),j)=(img_b2(horizontal_missing_lines(i)-1,j)+img_b2(horizontal_missing_lines(i)+1,j))/2;
+    img_b3(horizontal_missing_lines(i),j)=(img_b3(horizontal_missing_lines(i)-1,j)+img_b3(horizontal_missing_lines(i)+1,j))/2;
+    img_b4(horizontal_missing_lines(i),j)=(img_b4(horizontal_missing_lines(i)-1,j)+img_b4(horizontal_missing_lines(i)+1,j))/2;
+    end
+end
+
+img_step1 = [];
+
+img_step1(:,:,1) = img_b1;        % A new array is created and the new bands
+img_step1(:,:,2) = img_b2;        % are saved.
+img_step1(:,:,3) = img_b3;
+img_step1(:,:,4) = img_b4;
+
+%img_step1 is my result of the first step we will rotate this img for find
+%vertical missing lines if you wanna see the 'img_step1'; you should use
+%this 2 code :
+
+%img_step1 = uint16(img_step1);      
+%imwrite(img_step1, 'step_1.tif'); 
+
+
+%--------------------------------------------------------------------------------------------------------------------
+%---------------------------------------------------STEP2------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------------------
+
+%We should rotete 90 degree the img_step1. Because my code find only
+%horizontal missing line 
+
+img_step2 = imrotate(img_step1,90,'bicubic');
+
+% I will not explain after that. Because code is almost same with step1
+                                                                                                   
+img_step2_b1 = img_step2(:,:,1); 
+img_step2_b2 = img_step2(:,:,2);
+img_step2_b3 = img_step2(:,:,3);
+img_step2_b4 = img_step2(:,:,4);
+
+img_step2_row = size(img_step2_b1,1); 
+img_step2_column = size(img_step2_b1,2);  
+
+vertical_missing_lines = []; 
+
+L = 1;
+for i = 1:img_step2_row            
+   if sum(img_step2(i,:)) == 0    
+       vertical_missing_lines(L) = i;       
+       L = L + 1;
+   end
+end
+
+imgline = size(vertical_missing_lines,2);
+
+for i = 2:imgline   %I am starting at the second line because photo start with missing line and ý cannot avereged first line          
+    for j = 1:img_step2_column
+    img_step2_b1(vertical_missing_lines(i),j)=(img_step2_b1(vertical_missing_lines(i)-1,j)+img_step2_b1(vertical_missing_lines(i)+1,j))/2;
+    img_step2_b2(vertical_missing_lines(i),j)=(img_step2_b2(vertical_missing_lines(i)-1,j)+img_step2_b2(vertical_missing_lines(i)+1,j))/2;
+    img_step2_b3(vertical_missing_lines(i),j)=(img_step2_b3(vertical_missing_lines(i)-1,j)+img_step2_b3(vertical_missing_lines(i)+1,j))/2;
+    img_step2_b4(vertical_missing_lines(i),j)=(img_step2_b4(vertical_missing_lines(i)-1,j)+img_step2_b4(vertical_missing_lines(i)+1,j))/2;
+    end
+end
+
+
+
+img_step3 = [];
+
+img_step3(:,:,1) = img_step2_b1;        
+img_step3(:,:,2) = img_step2_b2;        
+img_step3(:,:,3) = img_step2_b3;
+img_step3(:,:,4) = img_step2_b4;
+
+%--------------------------------------------------------------------------------------------------------------------
+%---------------------------------------------------STEP3------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------------------
+
+
+%Lastly ý rotete img_step2 270 degree and find the solution of our missing
+%line problems
+img_result = imrotate(img_step3,270,'bicubic');
+img_result = uint16(img_result);      % I cannot to show the image with 32 bit so I chnage 32 to 16 bit
+imwrite(img_result, 'Result.tif'); % At the end, we save the new image.
