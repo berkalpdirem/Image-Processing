@@ -1,0 +1,19 @@
+img =imread ('C:\Users\berkalpdirem\Desktop\PS_SPOT6.tif');  %read the image
+band4 = double (img (:,:,4));                                %assign NIR band and turn to double for NDVI equation
+band3 = double (img (:,:,3)); 	                             %assign red band and turn to double for NDVI equation
+ 
+
+NDVI = (band4-band3)./ (band4+band3);	                     %NDVI equation
+NDVI = NDVI*128+127.5;		                                 %Scale ratio values
+
+
+NDVImasked =NDVI;			
+NDVImasked (NDVImasked<146 )=0;		                         %min threshold: 146
+NDVImasked (NDVImasked>229)=0;	                             %max threshold: 229
+NDVImasked (NDVImasked <=229 & NDVImasked >=146)=1;	         %visible part of NDVI
+
+figure; imshow(NDVImasked);                                  %show NDVImasked image,
+title('NDVImasked')
+
+imwrite(NDVImasked, 'NDVImasked.tif', 'tif')                 %save NDVImasked image
+imwrite(uint8(NDVI),'NDVI.tif','tif')                        %save NDVI image
