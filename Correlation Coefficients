@@ -1,0 +1,62 @@
+img = double(imread('C:\Users\berkalpdirem\Desktop\gmt342_lab01_BerkAlp_Direm_21431796\Sentl_20170629.tif')); 
+
+
+means = [];
+modes = [];
+medians = [];                                     %I opened empty arrays for using 'for loop'
+mins = [];
+maxs = [];
+std = [];
+
+for i = 1:4                                     
+    means (i) = mean(mean(img(:,:,i)));         
+    modes (i) = mode(mode(img(:,:,i)));         
+    medians (i) = median(median(img(:,:,i)));     % With for loop calculate each band calculations
+    mins (i) = min(min(img(:,:,i)));            
+    maxs (i) = max(max(img(:,:,i)));
+    std (i) = std2(img(:,:,i));   
+end
+%------------------------------------------------------------------------------------------------------------
+imgb1 = img(:,:,1);                               % Every band is saved separately for future calculations
+imgb2 = img(:,:,2);
+imgb3 = img(:,:,3);
+imgb4 = img(:,:,4);
+
+
+cov = zeros(4);                                   % An array is created for Covariance matrix.
+cov (1,1) = var(double(imgb1(:)));                % The diagonals are filled with the variances.
+cov (2,2) = var(double(imgb2(:)));
+cov (3,3) = var(double(imgb3(:)));
+cov (4,4) = var(double(imgb4(:)));
+%------------------------------------------------------------------------------------------------------------------
+imgrow = size(img,1);             
+imgcolumn = size(img,2);
+                                                  % I have specified specific values for future calculations 
+n = imgrow*imgcolumn;                   
+correlation = zeros(4);                 
+SP = zeros(4);
+
+for i = 1:3
+    SP(i,i+1)=sum(sum((img(:,:,i)-means(i)).*(img(:,:,i+1)-means(i+1))));
+    cov(i,i+1) = SP(i,i+1)/(n-1);
+    cov(i+1,i) = cov(i,i+1);
+    correlation(i,i+1) = cov(i,i+1)/(std(i)*std(i+1));
+    correlation(i+1,i) = correlation(i,i+1);
+    correlation(i,i) = cov(i,i)/(std(i)*std(i));  % I calculated coralations between each band 
+    if i+2<5
+        SP(i,i+2)=sum(sum((img(:,:,i)-means(i)).*(img(:,:,i+2)-means(i+2))));
+        cov(i,i+2) = SP(i,i+2)/(n-1);
+        cov (i+2,i) = cov(i,i+2);
+        correlation(i,i+2) = cov(i,i+2)/(std(i)*std(i+2));
+        correlation(i+2,i) = correlation(i,i+2);
+        correlation(i+2,i+2) = cov(i+2,i+2)/(std(i+2)*std(i+2));
+    end
+    if i+3<5
+        SP(i,i+3)=sum(sum((img(:,:,i)-means(i)).*(img(:,:,i+3)-means(i+3))));
+        cov(i,i+3) = SP(i,i+3)/(n-1);
+        cov (i+3,i) = cov(i,i+3);
+        correlation(i,i+3) = cov(i,i+3)/(std(i)*std(i+3));
+        correlation(i+3,i) = correlation(i,i+3);
+        correlation(i+3,i+3) = cov(i+3,i+3)/(std(i+3)*std(i+3));
+    end
+end
