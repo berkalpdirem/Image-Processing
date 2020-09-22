@@ -1,0 +1,71 @@
+
+%% Reading the tif image and reshape this image
+[img, img_info] = geotiffread('C:\Users\berkalpdirem\Desktop\gmt342_lab06_BerkAlp_Direm_21431796\l7_ms.tif');
+%number of bands
+bandsize=size(img,3);  
+% seperating the bands and changing it to double
+Bandarray={};
+for Bandnum=1:bandsize
+    Bandarray{Bandnum} = im2double(img(:,:,Bandnum)); 
+end
+
+d_img = double(img);
+reshaped_img = reshape(d_img, [], bandsize); 
+
+
+%% Calling PCA function
+[coeff,score,Eigenvalue,~,Percentages]= pca(reshaped_img);
+transformed_img = reshaped_img*coeff;
+%Spliting principal components
+Pcarray={};
+for pcnum=1:bandsize
+    Pcarray{pcnum} = reshape(transformed_img(:,pcnum),size(d_img,1),size(d_img,2));
+end
+%Plot the principal components with their percentages
+figure
+
+subplot(2,3,1);
+imshow(Pcarray{1},[])
+title(['PC1     %', num2str(Percentages(1))])
+
+subplot(2,3,2);
+imshow(Pcarray{2},[])
+title(['PC2     %', num2str(Percentages(2))])
+
+subplot(2,3,3);
+imshow(Pcarray{3},[])
+title(['PC3     %', num2str(Percentages(3))])
+
+subplot(2,3,4);
+imshow(Pcarray{4},[])
+title(['PC4     %', num2str(Percentages(4))])
+
+subplot(2,3,5);
+imshow(Pcarray{5},[])
+title(['PC5     %', num2str(Percentages(5))])
+
+subplot(2,3,6);
+imshow(Pcarray{6},[])
+title(['PC6     %', num2str(Percentages(6))])
+
+
+%% Create covariance matrix form reshaped image for find eigen values and their percentages
+cov_reshaped_img = cov(double(reshaped_img));
+[eigenvector,eigenvalue] = eig(cov_reshaped_img);
+
+%Create eigenvalue arrays for showing:,
+eigenvalue_matrix=[];
+for e=1:bandsize
+    %Getting the eigenvalue_array for showing:
+    eigenvalue_matrix(e) = eigenvalue(e,e);  
+end
+eigenvalue_matrix=flip(eigenvalue_matrix);
+disp('Eigenvalues:'), disp(eigenvalue_matrix); 
+%Calculate eigenvalues percentages
+Sum_eigenvalues=sum(eigenvalue_matrix) ;
+eigenvalue_percentages_matrix=eigenvalue_matrix*100/Sum_eigenvalues;
+disp('Eigenvalues Percentages:'), disp(eigenvalue_percentages_matrix);
+%% Writing the result image from  sum of principal components with cat function
+
+result=cat(3,Pcarray{1},Pcarray{2},Pcarray{3});
+geotiffwrite('Result.tif', result, img_info, 'CoordRefSysCode',32611);
