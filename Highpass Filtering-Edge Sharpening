@@ -1,0 +1,40 @@
+img = double(imread('C:\Users\berkalpdirem\Desktop\gmt342_lab05_BerkAlp_Direm_21431796\Image_HW05.tif'));
+BV4 = img(:,:,4);
+%----------------------------------------------------------------------------------------------------------------------------
+%--------------------------------------High Pass Filtering using the subtraction method and using a convolutional kernel-----
+%----------------------------------------------------------------------------------------------------------------------------
+imgrow = size(BV4,1);      
+imgcolumn = size(BV4,2);           %I described row and column size for the 'for loop'
+
+BV4mean=zeros(imgrow,imgcolumn);   %Creat 2 new matrix orginal image size for the 'for loop'
+BVconv=zeros(imgrow,imgcolumn);
+
+for r=2 :(imgrow-1)                %I start the code from (2,2). pixel. I didnt select image bounderies for the calculations  
+    for c=2 :(imgcolumn-1)         %Created mean filter than walk around the my 3x3 mean filter
+        BV4mean(r,c)=(BV4(r,c)+BV4(r,(c+1))+BV4(r,(c-1))+BV4((r+1),c)+BV4((r-1),c)+BV4((r+1),(c+1))+BV4((r-1),(c+1))+BV4((r+1),(c-1))+BV4((r-1),(c-1)))/9;        
+    end 
+end
+BVout=BV4-BV4mean;
+imwrite(BVout,'HIGHPASSsub.tif');
+
+Conv_kernel=[-1 -1 -1 ; -1 8 -1 ; -1 -1 -1]/9;           %Describe the convolutional kernel 
+BVconv = filter2(Conv_kernel,BV4 );
+
+imwrite(BVconv,'HIGHPASSconv.tif');
+
+subplot(1,2,1)
+subimage(BVout);title('Using the subtraction method.')
+subplot(1,2,2)                                           %Presentations of the results
+subimage(BVconv);title('Using a convolutional kernel.')
+%--------------------------------------------------------------------------------------------------------------------------------
+%------------------------------------Edge sharpening using unsharp masking method and generating a highboosted-------------------
+%--------------------------------------------------------------------------------------------------------------------------------
+Blurring_img=BV4mean;
+G_mask=BVout;
+k=3;                                %I select the 2 for k values but if you want darker image you can increase the k value
+HighBoosted_img=(BV4+k*G_mask);     %Related formula of Highboosted image
+
+imwrite(uint8(HighBoosted_img), 'HighBoosted_img.tif')
+
+figure
+imshow(HighBoosted_img,[]);title('Highboosted Image')
